@@ -176,7 +176,15 @@ function processCommand(cmd) {
         return;
     }
 
-    printLine(`investigator@shadow-sys:~$ ${cmd}`);
+    const div = document.createElement('div');
+    div.className = 'line';
+    const promptSpan = document.createElement('span');
+    promptSpan.className = 'prompt';
+    promptSpan.textContent = 'investigator@shadow-sys:~$ ';
+    div.appendChild(promptSpan);
+    div.appendChild(document.createTextNode(cmd));
+    terminalOutput.appendChild(div);
+    terminalOutput.scrollTop = terminalOutput.scrollHeight;
 
     const parts = cmd.trim().split(' ');
     const mainCommand = parts[0].toLowerCase();
