@@ -1,587 +1,320 @@
-// DOM Content Loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize all functionality
-    initNavigation();
-    initParticles();
-    initTypewriter();
-    initScrollAnimations();
-    initCounters();
-    initCertificateModal();
-    initContactForm();
-    initMobileMenu();
-    initSkillBars();
-    initLazyLoading();
-    initPerformanceOptimizations();
-    initFormValidation();
-});
 
-// Navigation functionality
-function initNavigation() {
-    const navbar = document.getElementById('navbar');
-    const navLinks = document.querySelectorAll('.nav-link');
-    
-    // Navbar scroll effect
-    let ticking = false;
-    
-    function updateNavbar() {
-        if (window.scrollY > 50) {
-            navbar.classList.add('scrolled');
-        } else {
-            navbar.classList.remove('scrolled');
-        }
-        ticking = false;
+const fileSystem = {
+    'README.txt': "CASE FILE: 0x92A\n\nINCIDENT: Unauthorized Root Access\nSEVERITY: CRITICAL\n\nOBJECTIVE: Identify the user account responsible for the breach.\nSubmit their username using the 'submit flag{username}' command.\n\nWARNING: The system is unstable. You have limited time.",
+    'auth.log': "Oct 24 10:00:01 server sshd[123]: Accepted password for root from 192.168.1.5 port 22\nOct 24 10:05:22 server sudo: admin : TTY=pts/0 ; PWD=/home/admin ; USER=root ; COMMAND=/bin/bash\nOct 24 10:15:45 server sudo: system : TTY=pts/1 ; PWD=/var/www ; USER=root ; COMMAND=/usr/bin/vim /etc/shadow\nOct 24 10:15:45 server sudo: ALERT - PREVIOUS COMMAND EXECUTED WITH SUSPICIOUS UID: 0x3E9\nOct 24 10:20:01 server sshd[129]: Failed password for invalid user guest from 10.0.0.5 port 22",
+    'file_integrity.log': "Checking integrity of /etc/passwd... OK\nChecking integrity of /etc/shadow... MODIFIED\nChecking integrity of /bin/ls... OK\n\nAlert: Checksum mismatch for /etc/shadow. Last modified by UID 1001.",
+    'users.db': "UID   | USERNAME  | ROLE\n------------------------\n0     | root      | ADMIN\n1000  | admin     | DEV\n1001  | system    | SERVICE\n1002  | webmaster | USER\n1003  | guest     | GUEST\n1004  | backup    | SERVICE",
+    'sudo_trace.log': "Trace started...\nPID 4452: /bin/bash (user: admin, uid: 1000)\nPID 4455: /usr/bin/vim (user: ???, uid: 1001)\nPID 4460: /bin/rm -rf /var/log/apache2 (user: root, uid: 0)\nTrace ended.",
+    'memory_dump.txt': "00000000  53 79 73 74 65 6d 20 43  6f 6d 70 72 6f 6d 69 73  |System Compromis|\n00000010  65 64 20 62 79 20 75 73  65 72 3a 20 62 61 63 6b  |ed by user: back|\n00000020  75 70 5f 6d 61 73 74 65  72 2e 2e 2e 20 4e 4f 21  |up_master... NO!|\n00000030  52 65 61 6c 20 75 73 65  72 20 69 73 20 68 69 64  |Real user is hid|\n00000040  64 65 6e 20 69 6e 20 70  72 6f 63 65 73 73 20 34  |den in process 4|\n00000050  34 35 35 2e 20 44 65 63  6f 64 65 20 55 49 44 2e  |455. Decode UID.|\n... [TRUNCATED]",
+    'backup_notes.txt': "Note to self: The backup script runs every night at 3 AM. It uses the 'backup' user account. Don't forget to rotate the keys.",
+    'network.log': "IP 192.168.1.105 - HTTP GET /index.html 200\nIP 10.0.0.55 - SSH ATTACK DETECTED\nIP 192.168.1.105 - HTTP POST /upload.php 200\nIP 45.33.22.11 - PORT SCAN DETECTED",
+    'system_warning.png': "[IMAGE]"
+};
+
+/*
+    LOGIC EXPLANATION:
+    1. 'auth.log' shows "SUSPICIOUS UID: 0x3E9".
+       0x3E9 in Hex = 1001 in Decimal.
+    2. 'file_integrity.log' says "/etc/shadow MODIFIED... by UID 1001".
+    3. 'sudo_trace.log' shows "PID 4455... (user: ???, uid: 1001)".
+    4. 'users.db' shows UID 1001 corresponds to user "system".
+    5. User thinks it's "system", BUT 'memory_dump.txt' says "Real user is hidden... Decode UID".
+       Wait, if they convert 0x3E9 -> 1001, they get "system".
+       BUT, the prompt says "The attacker impersonates system, but the real human is hidden via... image metadata".
+       Let's look at the Steganography part.
+       "system_warning.png displays as normal image. Hidden metadata contains clue referencing UID".
+       The prompt says "The attacker impersonates system".
+       Let's stick to the prompt's solution path:
+       - 0x3E9 (1001) -> 'system' user. 
+       - Users might think 'system' did it.
+       - But 'system' is a service account, not a human.
+       - 'memory_dump.txt' mentions "Real user is hidden...".
+       
+       Let's re-read the prompt logic carefully:
+       "The attacker impersonates system, but the real human is hidden via: sudo usage, UID in hex, image metadata".
+       Ending condition: "flag{username}". "Reject: system, root, admin. Only the real human attacker is accepted."
+       
+       So who is the real human?
+       The 'system' user (UID 1001) executed the command.
+       But maybe the "real human" took over 'system'?
+       Or is there another clue?
+       
+       Re-reading prompt Item 5 (Steganography): "Hidden metadata contains clue referencing UID".
+       Re-reading Item 3 (Challenge Logic): "Extracting metadata from system_warning.png".
+       
+       Let's add a hidden clue in 'system_warning.png' metadata (simulated via cat).
+       Let's say the metadata says "Original Human User: webmaster".
+       Or "UID masquerade: 1002 -> 1001".
+       
+       Let's adjust the logic to make 'webmaster' (UID 1002) the culprit.
+       Clue chain:
+       1. Logs point to UID 1001 (system).
+       2. 'system' is a service account (from users.db).
+       3. 'memory_dump.txt': "Real user is hidden...".
+       4. 'system_warning.png' (when cat'ed) shows garbage but includes string: "Exif: Source User ID: 1002".
+       5. users.db -> 1002 is 'webmaster'.
+       
+       So flag is flag{webmaster}.
+*/
+
+const gameState = {
+    score: 1000,
+    startTime: 0,
+    timerDuration: 30 * 60 * 1000, // 30 minutes
+    attempts: 0,
+    hintsUsed: 0,
+    lastSubmitTime: 0,
+    submissionsThisMinute: 0,
+    lockedUntil: 0,
+    gameOver: false
+};
+
+const hints = [
+    "Service accounts like 'system' rarely type commands manually. Who controlled it?",
+    "Check system_warning.png carefully. Binary files sometimes contain readable strings.",
+    "The file integrity log points to UID 1001, but the image metadata reveals the true Source ID."
+];
+
+const terminalOutput = document.getElementById('output');
+const commandInput = document.getElementById('command-input');
+const timerElement = document.getElementById('timer');
+const scoreElement = document.getElementById('score');
+const scanlines = document.querySelector('.scanlines');
+
+// Sound effects (simulated)
+const beep = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU'); // Placeholder
+
+function printLine(text, className = '') {
+    const div = document.createElement('div');
+    div.className = 'line ' + className;
+    div.textContent = text; // Secure text content
+    if (text.startsWith("[IMAGE]")) {
+        const svgData = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgNDAwIDIwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzAwMCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjZjAwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjI0Ij5TWVNURU0gQ09NUFhPTUlTRUQ8L3RleHQ+PC9zdmc+";
+        div.innerHTML = `<img src="${svgData}" style="max-width: 300px; border: 1px solid #f00; opacity: 0.8;">
+<br><span style="color:#555">...Warning: Corrupted PNG header...</span>
+<br><span style="color:#555">...Exif Data: Source User ID: 1002...</span>
+<br><span style="color:#555">...Opcode: Privilege Escalation...</span>`;
     }
-    
-    function requestTick() {
-        if (!ticking) {
-            requestAnimationFrame(updateNavbar);
-            ticking = true;
-        }
+    terminalOutput.appendChild(div);
+    terminalOutput.scrollTop = terminalOutput.scrollHeight;
+}
+
+function updateTimer() {
+    if (gameState.gameOver) return;
+
+    const elapsed = Date.now() - gameState.startTime;
+    const remaining = gameState.timerDuration - elapsed;
+
+    if (remaining <= 0) {
+        endGame('Time Expired', 'System corruption complete. Attacker erased traces.', 'failure');
+        return;
     }
-    
-    window.addEventListener('scroll', requestTick);
-    
-    // Smooth scrolling and active link highlighting
-    navLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const targetId = this.getAttribute('href');
-            const targetSection = document.querySelector(targetId);
-            
-            if (targetSection) {
-                const offsetTop = targetSection.offsetTop - 80;
-                window.scrollTo({
-                    top: offsetTop,
-                    behavior: 'smooth'
-                });
-                
-                // Update active link
-                navLinks.forEach(l => l.classList.remove('active'));
-                this.classList.add('active');
+
+    // Score reduction every 5 minutes (300000 ms)
+    const minutesElapsed = Math.floor(elapsed / 60000);
+    // Simple logic: Start score 1000. 
+    // We need to only deduct once per 5 minute block. 
+    // Actually, distinct deduction: "Every 5 minutes elapsed -> -50".
+    // Let's calculate based on buckets.
+    const penaltyIntervals = Math.floor(minutesElapsed / 5);
+    // We need to track if we already deducted. simpler: Just recalc score from base + penalties.
+    // However, score is dynamic. Let's just deduct when the threshold is crossed? 
+    // Safer to recalculate score from "events".
+    // But for this simple implementation, let's just update the display.
+    // We will do a periodic check.
+
+    // Format Timer
+    const m = Math.floor(remaining / 60000).toString().padStart(2, '0');
+    const s = Math.floor((remaining % 60000) / 1000).toString().padStart(2, '0');
+    timerElement.textContent = `${m}:${s}`;
+
+    // 5-minute penalty check (every second)
+    if (minutesElapsed > 0 && minutesElapsed % 5 === 0 && s === "59") {
+        // Only deduct once per minute cross
+        // This is a bit hacky, let's just subtract 50 points manually if we haven't tracked it.
+        // Better: gameState.score -= 50; BUT this would happen every frame of second 59.
+        // Let's ignore complex time-score tracking for now or stick to simple event based.
+    }
+}
+
+function updateScore(amount) {
+    gameState.score += amount;
+    scoreElement.textContent = gameState.score;
+
+    if (gameState.score < 200) {
+        endGame('Score Collapse', 'Analytical integrity compromised. Case reassigned.', 'failure');
+    }
+}
+
+function endGame(title, message, status) {
+    gameState.gameOver = true;
+    commandInput.disabled = true;
+
+    const modal = document.getElementById('modal-overlay');
+    const mTitle = document.getElementById('modal-title');
+    const mMsg = document.getElementById('modal-message');
+    const mContent = document.getElementById('modal-content');
+
+    mTitle.textContent = title;
+    mMsg.textContent = message;
+
+    modal.classList.remove('hidden');
+    mContent.className = status; // success or failure class for border color
+
+    if (status === 'failure') {
+        document.body.classList.add('glitch');
+    }
+}
+
+function processCommand(cmd) {
+    if (gameState.gameOver) return;
+
+    // Anti-Bruteforce Logic
+    const now = Date.now();
+    if (gameState.lockedUntil > now) {
+        printLine(`TERMINAL LOCKED. TRY AGAIN IN ${Math.ceil((gameState.lockedUntil - now) / 1000)}s`, 'failure');
+        return;
+    }
+
+    printLine(`investigator@shadow-sys:~$ ${cmd}`);
+
+    const parts = cmd.trim().split(' ');
+    const mainCommand = parts[0].toLowerCase();
+    const arg = parts[1];
+
+    switch (mainCommand) {
+        case 'help':
+            printLine("Available commands:");
+            printLine("  ls              - List available files");
+            printLine("  cat <filename>  - Display file content");
+            printLine("  submit <flag>   - Submit solution (Format: flag{username})");
+            printLine("  hint            - Request a hint (Cost: 75 pts)");
+            printLine("  clear           - Clear terminal");
+            break;
+
+        case 'ls':
+            Object.keys(fileSystem).forEach(file => printLine(file));
+            break;
+
+        case 'cat':
+            if (!arg) {
+                printLine("Usage: cat <filename>", "warning");
+            } else if (fileSystem[arg]) {
+                printLine(fileSystem[arg]);
+            } else {
+                printLine(`File not found: ${arg}`, "failure");
             }
-        });
-    });
-    
-    // Update active nav link on scroll
-    window.addEventListener('scroll', updateActiveNavLink);
-}
+            break;
 
-function updateActiveNavLink() {
-    const sections = document.querySelectorAll('section[id]');
-    const navLinks = document.querySelectorAll('.nav-link');
-    
-    let current = '';
-    const scrollPosition = window.scrollY + 100;
-    
-    sections.forEach(section => {
-        const sectionTop = section.offsetTop;
-        const sectionHeight = section.clientHeight;
-        
-        if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
-            current = section.getAttribute('id');
-        }
-    });
-    
-    navLinks.forEach(link => {
-        link.classList.remove('active');
-        if (link.getAttribute('href') === `#${current}`) {
-            link.classList.add('active');
-        }
-    });
-}
+        case 'clear':
+            terminalOutput.innerHTML = '';
+            break;
 
-// Particles animation
-function initParticles() {
-    const particlesContainer = document.getElementById('particles');
-    if (!particlesContainer) return;
-    
-    const particleCount = 50;
-    
-    for (let i = 0; i < particleCount; i++) {
-        createParticle(particlesContainer);
-    }
-}
-
-function createParticle(container) {
-    const particle = document.createElement('div');
-    particle.className = 'particle';
-    
-    // Random size
-    const size = Math.random() * 4 + 1;
-    particle.style.width = size + 'px';
-    particle.style.height = size + 'px';
-    
-    // Random position
-    particle.style.left = Math.random() * 100 + '%';
-    particle.style.top = Math.random() * 100 + '%';
-    
-    // Random animation
-    const duration = Math.random() * 3 + 3;
-    particle.style.animationDuration = duration + 's';
-    particle.style.animationDelay = Math.random() * 2 + 's';
-    
-    container.appendChild(particle);
-}
-
-// Typewriter effect
-function initTypewriter() {
-    const typewriterElement = document.querySelector('.typewriter');
-    if (!typewriterElement) return;
-    
-    const text = typewriterElement.getAttribute('data-text') || 'Mohammad Abu Yahya';
-    let i = 0;
-    const speed = 100;
-    
-    function typeWriter() {
-        if (i < text.length) {
-            typewriterElement.innerHTML += text.charAt(i);
-            i++;
-            setTimeout(typeWriter, speed);
-        } else {
-            typewriterElement.classList.add('cursor');
-        }
-    }
-    
-    // Start the typewriter effect
-    setTimeout(typeWriter, 500);
-}
-
-// Scroll animations
-function initScrollAnimations() {
-    const observerOptions = {
-        root: null,
-        rootMargin: '0px',
-        threshold: 0.1
-    };
-    
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('animate-in');
+        case 'hint':
+            if (gameState.hintsUsed >= 3) {
+                printLine("No more hints available.", "warning");
+            } else {
+                printLine(`HINT ${gameState.hintsUsed + 1}: ${hints[gameState.hintsUsed]}`, "warning");
+                gameState.hintsUsed++;
+                updateScore(-75);
             }
-        });
-    }, observerOptions);
-    
-    // Observe all animated elements
-    const animatedElements = document.querySelectorAll('.section, .project-card, .timeline-item, .cert-card');
-    animatedElements.forEach(element => {
-        observer.observe(element);
-    });
-}
+            break;
 
-// Counter animations
-function initCounters() {
-    const counters = document.querySelectorAll('.stat-number');
-    if (counters.length === 0) return;
-    
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                counters.forEach(counter => {
-                    const target = parseFloat(counter.getAttribute('data-target'));
-                    const increment = target / 50;
-                    let current = 0;
-                    
-                    const updateCounter = () => {
-                        if (current < target) {
-                            current += increment;
-                            if (current > target) current = target;
-                            
-                            // Format number based on decimal places
-                            if (target % 1 === 0) {
-                                counter.textContent = Math.floor(current);
-                            } else {
-                                counter.textContent = current.toFixed(2);
-                            }
-                            
-                            setTimeout(updateCounter, 20);
-                        } else {
-                            counter.textContent = target % 1 === 0 ? target.toString() : target.toFixed(2);
-                        }
-                    };
-                    
-                    updateCounter();
-                });
-                observer.unobserve(entry.target);
+        case 'submit':
+            if (!arg) {
+                printLine("Usage: submit flag{username}", "warning");
+                return;
             }
-        });
-    }, { threshold: 0.5 });
-    
-    const statsSection = document.querySelector('.about-stats');
-    if (statsSection) {
-        observer.observe(statsSection);
-    }
-}
 
-// Certificate Modal
-function initCertificateModal() {
-    const modal = document.getElementById('cert-modal');
-    const previewButtons = document.querySelectorAll('.cert-preview-btn');
-    const closeBtn = document.querySelector('.close');
-    
-    if (!modal) return;
-    
-    // Certificate preview content
-    const certContent = {
-        'ejptv2': `
-            <div class="cert-preview-content">
-                <h4>eJPTv2 - Preparation Course</h4>
-                <p>INE Security</p>
-                <p>The eJPTv2 preparation course covers essential penetration testing skills including network scanning, vulnerability assessment, web application attacks, and post-exploitation techniques.</p>
-                <div class="cert-details">
-                    <p><strong>Topics Covered:</strong></p>
-                    <ul>
-                        <li>Network Penetration Testing</li>
-                        <li>Web Application Security</li>
-                        <li>Vulnerability Assessment</li>
-                        <li>Report Writing</li>
-                        <li>Ethical Hacking Methodology</li>
-                    </ul>
-                </div>
-            </div>
-        `,
-        'iso27001': `
-            <div class="cert-preview-content">
-                <h4>ISO/IEC 27001 Lead Auditor</h4>
-                <p>Mastermind Assurance</p>
-                <p>This certification demonstrates the ability to perform and lead Information Security Management System (ISMS) audits in accordance with ISO 27001 standards.</p>
-                <div class="cert-details">
-                    <p><strong>Skills Acquired:</strong></p>
-                    <ul>
-                        <li>ISMS Audit Planning</li>
-                        <li>Risk Assessment Methodologies</li>
-                        <li>Compliance Verification</li>
-                        <li>Audit Reporting</li>
-                        <li>Continual Improvement</li>
-                    </ul>
-                </div>
-            </div>
-        `,
-        'google-cyber': `
-            <div class="cert-preview-content">
-                <h4>Cybersecurity Certificate</h4>
-                <p>Google</p>
-                <p>This comprehensive program covers foundational cybersecurity concepts, tools, and best practices for protecting systems and networks from cyber threats.</p>
-                <div class="cert-details">
-                    <p><strong>Key Areas:</strong></p>
-                    <ul>
-                        <li>Security Fundamentals</li>
-                        <li>Network Defense</li>
-                        <li>Incident Response</li>
-                        <li>Security Operations</li>
-                        <li>Risk Management</li>
-                    </ul>
-                </div>
-            </div>
-        `,
-        'peh': `
-            <div class="cert-preview-content">
-                <h4>Practical Ethical Hacker</h4>
-                <p>TCM Security</p>
-                <p>Hands-on training in ethical hacking methodologies, tools, and techniques used by professional penetration testers and security researchers.</p>
-                <div class="cert-details">
-                    <p><strong>Practical Skills:</strong></p>
-                    <ul>
-                        <li>Reconnaissance Techniques</li>
-                        <li>Exploitation Methods</li>
-                        <li>Privilege Escalation</li>
-                        <li>Persistence Mechanisms</li>
-                        <li>Post-Exploitation</li>
-                    </ul>
-                </div>
-            </div>
-        `,
-        'soc101': `
-            <div class="cert-preview-content">
-                <h4>SOC 101</h4>
-                <p>TCM Security</p>
-                <p>Foundational training in Security Operations Center (SOC) operations, including monitoring, detection, analysis, and response to security incidents.</p>
-                <div class="cert-details">
-                    <p><strong>Covered Topics:</strong></p>
-                    <ul>
-                        <li>SIEM Operations</li>
-                        <li>Threat Detection</li>
-                        <li>Incident Response Procedures</li>
-                        <li>Security Monitoring</li>
-                        <li>Alert Triage</li>
-                    </ul>
-                </div>
-            </div>
-        `
-    };
-    
-    // Open modal on button click
-    previewButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const certId = this.getAttribute('data-cert');
-            const certCard = this.closest('.cert-card');
-            const title = certCard.querySelector('h3').textContent;
-            
-            document.getElementById('modal-cert-title').textContent = title;
-            document.getElementById('modal-cert-content').innerHTML = 
-                certContent[certId] || '<p>Certificate details not available.</p>';
-            
-            modal.style.display = 'block';
-            document.body.style.overflow = 'hidden';
-        });
-    });
-    
-    // Close modal
-    closeBtn.addEventListener('click', closeModal);
-    
-    // Close modal when clicking outside
-    window.addEventListener('click', function(event) {
-        if (event.target === modal) {
-            closeModal();
-        }
-    });
-    
-    // Close with Escape key
-    document.addEventListener('keydown', function(event) {
-        if (event.key === 'Escape' && modal.style.display === 'block') {
-            closeModal();
-        }
-    });
-    
-    function closeModal() {
-        modal.style.display = 'none';
-        document.body.style.overflow = 'auto';
-    }
-}
-
-// Contact form handling
-function initContactForm() {
-    const contactForm = document.getElementById('contact-form');
-    
-    if (contactForm) {
-        contactForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Show loading state
-            const submitBtn = contactForm.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
-            submitBtn.disabled = true;
-            
-            // Use EmailJS for form submission
-            emailjs.sendForm("service_20f3ekj", "template_t6kx8ju", this)
-                .then(function() {
-                    showNotification("✅ Message sent successfully! I'll get back to you soon.", "success");
-                    contactForm.reset();
-                }, function(error) {
-                    showNotification("❌ Failed to send message. Please try again.", "error");
-                    console.error('EmailJS Error:', error);
-                })
-                .finally(() => {
-                    submitBtn.innerHTML = originalText;
-                    submitBtn.disabled = false;
-                });
-        });
-    }
-}
-
-// Mobile menu toggle
-function initMobileMenu() {
-    const hamburger = document.getElementById('hamburger');
-    const navMenu = document.getElementById('nav-menu');
-    const navLinks = document.querySelectorAll('.nav-link');
-    
-    if (!hamburger || !navMenu) return;
-    
-    hamburger.addEventListener('click', function() {
-        navMenu.classList.toggle('active');
-        hamburger.classList.toggle('active');
-        
-        // Toggle body scroll
-        if (navMenu.classList.contains('active')) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = 'auto';
-        }
-    });
-    
-    // Close menu when clicking on nav links
-    navLinks.forEach(link => {
-        link.addEventListener('click', function() {
-            navMenu.classList.remove('active');
-            hamburger.classList.remove('active');
-            document.body.style.overflow = 'auto';
-        });
-    });
-}
-
-// Skill bars animation
-function initSkillBars() {
-    const skillBars = document.querySelectorAll('.skill-fill');
-    if (skillBars.length === 0) return;
-    
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const skillLevel = entry.target.getAttribute('data-skill');
-                entry.target.style.width = skillLevel + '%';
+            // Bruteforce Check
+            if (now - gameState.lastSubmitTime < 12000) { // 12 seconds (~5 per min)
+                gameState.submissionsThisMinute++;
+            } else {
+                gameState.submissionsThisMinute = 1;
             }
-        });
-    }, { threshold: 0.5 });
-    
-    skillBars.forEach(bar => {
-        observer.observe(bar);
-    });
-}
+            gameState.lastSubmitTime = now;
 
-// Lazy loading for images
-function initLazyLoading() {
-    const images = document.querySelectorAll('img[data-src]');
-    if (images.length === 0) return;
-    
-    const imageObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const img = entry.target;
-                img.src = img.dataset.src;
-                img.classList.add('loaded');
-                imageObserver.unobserve(img);
+            if (gameState.submissionsThisMinute > 5) {
+                gameState.lockedUntil = now + 60000;
+                updateScore(-150);
+                printLine("RATE LIMIT EXCEEDED. TERMINAL LOCKED FOR 60s. PENALTY -150.", "failure");
+                return;
             }
-        });
-    });
-    
-    images.forEach(img => imageObserver.observe(img));
-}
 
-// Performance optimizations
-function initPerformanceOptimizations() {
-    // Throttle scroll events
-    let ticking = false;
-    
-    function updateOnScroll() {
-        updateActiveNavLink();
-        ticking = false;
-    }
-    
-    function requestTick() {
-        if (!ticking) {
-            requestAnimationFrame(updateOnScroll);
-            ticking = true;
-        }
-    }
-    
-    window.addEventListener('scroll', requestTick);
-}
+            // Answer Check
+            // Valid solution: flag{webmaster}
+            const cleanArg = arg.toLowerCase().trim();
 
-// Form validation
-function initFormValidation() {
-    const form = document.getElementById('contact-form');
-    if (!form) return;
-    
-    const inputs = form.querySelectorAll('input, textarea');
-    
-    inputs.forEach(input => {
-        input.addEventListener('blur', function() {
-            validateField(this);
-        });
-        
-        input.addEventListener('input', function() {
-            clearFieldError(this);
-        });
-    });
-}
+            if (cleanArg === 'flag{webmaster}') {
+                // Success
+                const timeRemaining = (gameState.timerDuration - (Date.now() - gameState.startTime)) / 60000;
+                if (gameState.score > 700 && timeRemaining > 15) {
+                    endGame('Elite Analyst Status', 'Incident neutralized. Promotion recommended.', 'success');
+                } else {
+                    endGame('Investigation Successful', 'Attacker identified. System secured.', 'success');
+                }
+            } else {
+                // Failure
+                gameState.attempts++;
+                updateScore(-100);
+                printLine("INCORRECT KEY. ACCESS DENIED.", "failure");
 
-function validateField(field) {
-    const value = field.value.trim();
-    let isValid = true;
-    let errorMessage = '';
-    
-    switch (field.type) {
-        case 'text':
-            if (field.id === 'name') {
-                if (value.length < 2) {
-                    errorMessage = 'Name must be at least 2 characters';
-                    isValid = false;
+                if (cleanArg.includes('system') || cleanArg.includes('root') || cleanArg.includes('admin')) {
+                    printLine("Security Alert: System accounts verified. Look closer.", "warning");
+                }
+
+                if (gameState.attempts >= 10) {
+                    endGame('Security Lockdown', 'Intrusion detection triggered. Investigation terminated.', 'failure');
                 }
             }
             break;
-            
-        case 'email':
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(value)) {
-                errorMessage = 'Please enter a valid email address';
-                isValid = false;
-            }
-            break;
-            
-        case 'textarea':
-            if (value.length < 10) {
-                errorMessage = 'Message must be at least 10 characters';
-                isValid = false;
-            }
-            break;
+
+        default:
+            printLine(`Command not found: ${mainCommand}`, "failure");
     }
-    
-    if (!isValid) {
-        showFieldError(field, errorMessage);
-    } else {
-        clearFieldError(field);
-    }
-    
-    return isValid;
 }
 
-function showFieldError(field, message) {
-    clearFieldError(field);
-    
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'field-error';
-    errorDiv.textContent = message;
-    errorDiv.style.color = 'var(--danger-color)';
-    errorDiv.style.fontSize = '0.85rem';
-    errorDiv.style.marginTop = '5px';
-    
-    field.parentNode.appendChild(errorDiv);
-    field.style.borderColor = 'var(--danger-color)';
-}
-
-function clearFieldError(field) {
-    const existingError = field.parentNode.querySelector('.field-error');
-    if (existingError) {
-        existingError.remove();
+// Command Input Listener
+commandInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        const cmd = commandInput.value;
+        commandInput.value = '';
+        if (cmd) processCommand(cmd);
     }
-    field.style.borderColor = '';
-}
+});
 
-// Notification system
-function showNotification(message, type = "success") {
-    const notification = document.getElementById("notification");
-    if (!notification) return;
-    
-    notification.textContent = message;
-    notification.className = "notification " + type;
-    notification.style.display = "block";
-    
-    // Auto-hide after 5 seconds
+// Start Button Logic
+document.getElementById('start-btn').addEventListener('click', startGame);
+
+function startGame() {
+    document.getElementById('start-screen').classList.add('hidden');
+    document.getElementById('game-container').classList.remove('hidden');
+
+    gameState.startTime = Date.now();
+
+    // Initial Lines with delay for effect
+    setTimeout(() => printLine("Initializing forensics environment..."), 100);
+    setTimeout(() => printLine("Loading system logs... [OK]"), 600);
+    setTimeout(() => printLine("Decrypting file system... [OK]"), 1200);
+    setTimeout(() => printLine("Secure connection established."), 1800);
     setTimeout(() => {
-        notification.style.display = "none";
-    }, 5000);
-}
+        printLine(" ");
+        printLine("WARNING: UNAUTHORIZED SYSTEM MODIFICATIONS DETECTED.", "welcome-msg");
+        printLine("IDENTIFY THE INTRUDER BEFORE TOTAL SYSTEM CORRUPTION.", "welcome-msg");
+        printLine(" ");
+        printLine("Type 'help' for available commands.");
+        printLine(" ");
+        commandInput.focus();
+    }, 2500);
 
-// Smooth scroll to top on page refresh
-window.addEventListener('beforeunload', function() {
-    window.scrollTo(0, 0);
-});
+    // Start Loops
+    setInterval(updateTimer, 1000);
 
-// Initialize on load
-window.addEventListener('load', function() {
-    // Add loaded class for fade-in effects
-    document.body.classList.add('loaded');
-    
-    // Preload images
-    const images = document.querySelectorAll('img');
-    images.forEach(img => {
-        if (img.complete) {
-            img.classList.add('loaded');
-        } else {
-            img.addEventListener('load', function() {
-                this.classList.add('loaded');
-            });
+    // Score decay loop (every 5 mins)
+    setInterval(() => {
+        if (!gameState.gameOver) {
+            updateScore(-50);
+            printLine("Notice: Time penalty applied (-50 pts).", "warning");
         }
-    });
-});
+    }, 300000);
+}
