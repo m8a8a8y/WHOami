@@ -1,0 +1,234 @@
+:root {
+    --bg-color: #0a0a0a;
+    --text-color: #0f0;
+    --alert-color: #F00;
+    --dim-color: #004400;
+    --font-stack: 'Courier New', Courier, monospace;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: var(--font-stack);
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-shadow: 0 0 4px rgba(0, 255, 0, 0.5);
+    /* Added glow */
+}
+
+.monitor-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(0, 255, 0, 0.05) 0%, rgba(0, 0, 0, 0.4) 100%);
+    /* Lighter vignette */
+    pointer-events: none;
+    z-index: 10;
+}
+
+.scanlines {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    /* Reduced scanline darkness */
+    background-size: 100% 2px, 3px 100%;
+    pointer-events: none;
+    z-index: 9;
+}
+
+.container {
+    width: 90%;
+    height: 90%;
+    border: 2px solid var(--text-color);
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 0 0 20px var(--text-color);
+    background-color: rgba(0, 20, 0, 0.85);
+}
+
+header {
+    border-bottom: 1px solid var(--text-color);
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+h1 {
+    font-size: 1.2rem;
+    margin: 0;
+    text-shadow: 0 0 8px var(--text-color);
+}
+
+.timer-display,
+.score-display {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.timer-display {
+    color: #ffaa00;
+}
+
+#terminal {
+    flex-grow: 1;
+    overflow-y: auto;
+    font-size: 1rem;
+    line-height: 1.4;
+}
+
+.line {
+    margin-bottom: 2px;
+    word-wrap: break-word;
+}
+
+.welcome-msg {
+    color: #ffaa00;
+    font-weight: bold;
+}
+
+.input-line {
+    display: flex;
+    align-items: center;
+}
+
+.prompt {
+    margin-right: 10px;
+    color: var(--text-color);
+    font-weight: bold;
+}
+
+#command-input {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    font-family: var(--font-stack);
+    font-size: 1rem;
+    flex-grow: 1;
+    outline: none;
+    caret-color: var(--text-color);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-color);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--dim-color);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-color);
+}
+
+/* Modals */
+.hidden {
+    display: none !important;
+}
+
+#modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+#modal-content {
+    border: 2px solid;
+    padding: 40px;
+    max-width: 600px;
+}
+
+#modal-title {
+    font-size: 2rem;
+    margin-bottom: 20px;
+}
+
+button {
+    background: transparent;
+    border: 1px solid currentColor;
+    color: currentColor;
+    padding: 10px 20px;
+    font-family: var(--font-stack);
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+button:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Status colors */
+.success {
+    color: #0f0;
+    border-color: #0f0;
+}
+
+.failure {
+    color: #f00;
+    border-color: #f00;
+}
+
+.warning {
+    color: #ffaa00;
+    border-color: #ffaa00;
+}
+
+/* Glitch effect class */
+.glitch {
+    animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+    color: var(--alert-color);
+}
+
+@keyframes glitch {
+    0% {
+        transform: translate(0)
+    }
+
+    20% {
+        transform: translate(-2px, 2px)
+    }
+
+    40% {
+        transform: translate(-2px, -2px)
+    }
+
+    60% {
+        transform: translate(2px, 2px)
+    }
+
+    80% {
+        transform: translate(2px, -2px)
+    }
+
+    100% {
+        transform: translate(0)
+    }
+}
