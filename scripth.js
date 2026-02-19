@@ -421,16 +421,16 @@ async function playIntroSequence() {
     }
 
     await new Promise(r => setTimeout(r, 800));
-    startScreen.innerHTML = ''; // Clear boot sequence for clean logo display (optional, or keep it)
+    // startScreen.innerHTML = ''; // Keep boot log visible
     // Actually, keeping it makes it look like a history buffer. Let's keep it but maybe add a separator or just clear if the user wants a "new screen" feel. 
     // The user said "make everything like starting a tool", usually tools clear screen or just scroll. 
     // I'll clear it to frame the ASCII Logo better, or maybe just add spacing.
     // Let's clear it for a "clean tool UI" launch effect.
-    startScreen.innerHTML = '';
+    // startScreen.innerHTML = ''; // This line is removed
 
     const asciiLines = ASCIILogo.split('\n');
     const artContainer = document.createElement('div');
-    artContainer.style.textAlign = 'center';
+    artContainer.style.textAlign = 'center'; // Keep centered for ASCII
     startScreen.appendChild(artContainer);
 
     for (let line of asciiLines) {
@@ -440,95 +440,110 @@ async function playIntroSequence() {
         pre.style.lineHeight = '8px';
         pre.style.margin = '0';
         pre.style.color = '#0f0';
-        pre.textContent = line;
         artContainer.appendChild(pre);
+
+        const chars = line.split('');
+        for (let char of chars) {
+            pre.textContent += char;
+        }
+
         startScreen.scrollTop = startScreen.scrollHeight;
-        await new Promise(r => setTimeout(r, 10));
+        await new Promise(r => setTimeout(r, 20));
     }
 
     await new Promise(r => setTimeout(r, 500));
 
+    // Use boot-style output for titles instead of h1/h2
+    const titleLines = [
+        "[+] System Identification: SHADOW IN THE SYSTEM",
+        "[+] Operation Mode: ESCAPE ROOM SCENARIO"
+    ];
+
+    for (const line of titleLines) {
+        const p = document.createElement('div');
+        p.style.fontFamily = 'monospace';
+        p.style.marginBottom = '5px';
+        p.style.color = '#33ff33'; // Matches boot log green
+        p.style.textShadow = '0 0 2px #33ff33';
+        p.textContent = line;
+
+        startScreen.appendChild(p);
+        startScreen.scrollTop = startScreen.scrollHeight;
+        await new Promise(r => setTimeout(r, Math.random() * 200 + 100));
+    }
+
     await new Promise(r => setTimeout(r, 500));
 
+    // Mission Briefing (Log Style)
+    const missionLines = [
+        "----------------------------------------------------------------",
+        "[+] MISSION BRIEFING: UNAUTHORIZED ROOT ACCESS DETECTED",
+        "[+] Target Server: 0x92A (CRITICAL)",
+        "----------------------------------------------------------------",
+        "[>] OBJECTIVE 1: Analyze system logs and forensic artifacts.",
+        "[>] OBJECTIVE 2: Identify the attacker's true identity.",
+        "[>] OBJECTIVE 3: Submit flag format: flag{username}",
+        " ",
+        "[!] CRITICAL WARNING: System corruption imminent in 30 minutes.",
+        "[!] Immediate action required."
+    ];
 
-
-
-
-    const typeString = async (text, style = '', tag = 'p') => {
-        const p = document.createElement(tag);
-        p.style.cssText = style;
-        p.style.textAlign = 'center';
-        startScreen.appendChild(p);
-
-        let i = 0;
-        const speed = 20;
-
-        while (i < text.length) {
-            p.textContent += text.charAt(i);
-            i++;
-            startScreen.scrollTop = startScreen.scrollHeight;
-            await new Promise(r => setTimeout(r, speed));
-        }
-        await new Promise(r => setTimeout(r, 300));
-    };
-
-    await typeString("SHADOW IN THE SYSTEM", "font-size: 2.5rem; margin-bottom: 10px; text-shadow: 0 0 10px #0f0; color: #fff;", "h1");
-    await typeString("Escape Room", "color: #ffaa00; font-size: 1.5rem; margin-bottom: 20px;", "h2");
-
-    const flowContainer = document.createElement('div');
-    flowContainer.style.maxWidth = '900px';
-    flowContainer.style.margin = '0 auto';
-    flowContainer.style.border = '2px solid #33ff33';
-    flowContainer.style.padding = '40px';
-    flowContainer.style.background = 'rgba(0, 20, 0, 0.8)';
-    flowContainer.style.textAlign = 'left';
-    flowContainer.style.fontSize = '1.5rem';
-    flowContainer.style.lineHeight = '1.6';
-    flowContainer.style.boxShadow = '0 0 20px rgba(51, 255, 51, 0.2)';
-    startScreen.appendChild(flowContainer);
-
-    const typeToContainer = async (text, isHtml = false) => {
+    for (const line of missionLines) {
         const p = document.createElement('div');
-        p.style.marginBottom = '10px';
         p.style.fontFamily = 'monospace';
-        flowContainer.appendChild(p);
+        p.style.fontSize = '1.2rem'; // Slightly larger than boot logs for readability
+        p.style.marginBottom = '5px';
+        p.style.textShadow = '0 0 2px #33ff33';
 
-        if (isHtml) {
-            p.innerHTML = text;
+        if (line.includes("[!]")) {
+            p.style.color = '#ff3333';
+        } else if (line.includes("[+]")) {
+            p.style.color = '#33ff33';
+            p.style.fontWeight = 'bold';
+        } else if (line.includes("[>]")) {
+            p.style.color = '#33ff33';
         } else {
-            let i = 0;
-            while (i < text.length) {
-                p.textContent += text.charAt(i);
-                i++;
-                startScreen.scrollTop = startScreen.scrollHeight;
-                await new Promise(r => setTimeout(r, 15));
-            }
+            p.style.color = '#33ff33';
         }
-        await new Promise(r => setTimeout(r, 200));
-    };
 
-    await typeToContainer("MISSION BRIEFING:");
-    await typeToContainer("We have detected unauthorized root access on server 0x92A. System integrity is compromised.");
-    await typeToContainer("YOUR OBJECTIVE:");
-    await typeToContainer("- Analyze system logs and artifacts.");
-    await typeToContainer("- Identify the REAL user behind the attack.");
-    await typeToContainer("- Submit the flag: flag{username}");
-    await typeToContainer("WARNING: You have 30 minutes before the system is permanently corrupted.");
+        p.textContent = line;
+        startScreen.appendChild(p); // Append directly to screen, no box
+        startScreen.scrollTop = startScreen.scrollHeight;
 
+        // Typing effect or fast scroll? User said "same way present as...", usually implies the log scroll.
+        // Let's do a fast scroll delay.
+        await new Promise(r => setTimeout(r, 100));
+    }
+
+    await new Promise(r => setTimeout(r, 500));
+
+    // Button
     const btnBox = document.createElement('div');
-    btnBox.style.marginTop = '20px';
+    btnBox.style.marginTop = '40px';
     btnBox.style.textAlign = 'center';
-    flowContainer.appendChild(btnBox);
+    startScreen.appendChild(btnBox); // Append to main screen
 
     const btn = document.createElement('button');
-    btn.textContent = 'INITIALIZE SESSION';
+    btn.textContent = 'INITIALIZE_SESSION [--force]';
     btn.id = 'start-btn';
     btn.style.fontSize = '1.5rem';
     btn.style.padding = '15px 40px';
-    btn.style.border = '2px solid #0f0';
-    btn.style.background = '#002200';
-    btn.style.color = '#0f0';
+    btn.style.border = '2px solid #33ff33';
+    btn.style.background = 'rgba(0, 50, 0, 0.6)';
+    btn.style.color = '#33ff33';
     btn.style.cursor = 'pointer';
+    btn.style.fontFamily = 'monospace';
+    btn.style.boxShadow = '0 0 15px #33ff33';
+
+    btn.onmouseover = () => {
+        btn.style.background = '#33ff33';
+        btn.style.color = '#000';
+    };
+    btn.onmouseout = () => {
+        btn.style.background = 'rgba(0, 50, 0, 0.6)';
+        btn.style.color = '#33ff33';
+    };
+
     btnBox.appendChild(btn);
 
     btn.addEventListener('click', startGame);
