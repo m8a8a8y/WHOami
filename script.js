@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initSkillBars();
     initLazyLoading();
     initPerformanceOptimizations();
+    initFormValidation();
 });
 
 // Navigation functionality
@@ -20,13 +21,25 @@ function initNavigation() {
     const navLinks = document.querySelectorAll('.nav-link');
     
     // Navbar scroll effect
-    window.addEventListener('scroll', function() {
+    let ticking = false;
+    
+    function updateNavbar() {
         if (window.scrollY > 50) {
             navbar.classList.add('scrolled');
         } else {
             navbar.classList.remove('scrolled');
         }
-    });
+        ticking = false;
+    }
+    
+    function requestTick() {
+        if (!ticking) {
+            requestAnimationFrame(updateNavbar);
+            ticking = true;
+        }
+    }
+    
+    window.addEventListener('scroll', requestTick);
     
     // Smooth scrolling and active link highlighting
     navLinks.forEach(link => {
@@ -41,6 +54,10 @@ function initNavigation() {
                     top: offsetTop,
                     behavior: 'smooth'
                 });
+                
+                // Update active link
+                navLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
             }
         });
     });
@@ -54,10 +71,13 @@ function updateActiveNavLink() {
     const navLinks = document.querySelectorAll('.nav-link');
     
     let current = '';
+    const scrollPosition = window.scrollY + 100;
+    
     sections.forEach(section => {
-        const sectionTop = section.offsetTop - 100;
+        const sectionTop = section.offsetTop;
         const sectionHeight = section.clientHeight;
-        if (window.scrollY >= sectionTop && window.scrollY < sectionTop + sectionHeight) {
+        
+        if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
             current = section.getAttribute('id');
         }
     });
@@ -73,6 +93,8 @@ function updateActiveNavLink() {
 // Particles animation
 function initParticles() {
     const particlesContainer = document.getElementById('particles');
+    if (!particlesContainer) return;
+    
     const particleCount = 50;
     
     for (let i = 0; i < particleCount; i++) {
@@ -93,13 +115,10 @@ function createParticle(container) {
     particle.style.left = Math.random() * 100 + '%';
     particle.style.top = Math.random() * 100 + '%';
     
-    // Random animation duration
+    // Random animation
     const duration = Math.random() * 3 + 3;
     particle.style.animationDuration = duration + 's';
-    
-    // Random animation delay
-    const delay = Math.random() * 2;
-    particle.style.animationDelay = delay + 's';
+    particle.style.animationDelay = Math.random() * 2 + 's';
     
     container.appendChild(particle);
 }
@@ -109,9 +128,9 @@ function initTypewriter() {
     const typewriterElement = document.querySelector('.typewriter');
     if (!typewriterElement) return;
     
-    const text = typewriterElement.getAttribute('data-text');
+    const text = typewriterElement.getAttribute('data-text') || 'Mohammad Abu Yahya';
     let i = 0;
-    let speed = 100;
+    const speed = 100;
     
     function typeWriter() {
         if (i < text.length) {
@@ -119,13 +138,12 @@ function initTypewriter() {
             i++;
             setTimeout(typeWriter, speed);
         } else {
-            // Add blinking cursor after text is complete
             typewriterElement.classList.add('cursor');
         }
     }
     
     // Start the typewriter effect
-    setTimeout(typeWriter, 1000);
+    setTimeout(typeWriter, 500);
 }
 
 // Scroll animations
@@ -144,52 +162,47 @@ function initScrollAnimations() {
         });
     }, observerOptions);
     
-    // Observe all sections
-    const sections = document.querySelectorAll('section');
-    sections.forEach(section => {
-        observer.observe(section);
-    });
-    
-    // Observe project cards
-    const projectCards = document.querySelectorAll('.project-card');
-    projectCards.forEach(card => {
-        observer.observe(card);
-    });
-    
-    // Observe timeline items
-    const timelineItems = document.querySelectorAll('.timeline-item');
-    timelineItems.forEach(item => {
-        observer.observe(item);
+    // Observe all animated elements
+    const animatedElements = document.querySelectorAll('.section, .project-card, .timeline-item, .cert-card');
+    animatedElements.forEach(element => {
+        observer.observe(element);
     });
 }
 
 // Counter animations
 function initCounters() {
     const counters = document.querySelectorAll('.stat-number');
-    let hasAnimated = false;
+    if (counters.length === 0) return;
     
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
-            if (entry.isIntersecting && !hasAnimated) {
-                hasAnimated = true;
+            if (entry.isIntersecting) {
                 counters.forEach(counter => {
                     const target = parseFloat(counter.getAttribute('data-target'));
-                    const increment = target / 100;
+                    const increment = target / 50;
                     let current = 0;
                     
                     const updateCounter = () => {
                         if (current < target) {
                             current += increment;
                             if (current > target) current = target;
-                            counter.innerText = target % 1 === 0 ? Math.floor(current) : current.toFixed(2);
-                            requestAnimationFrame(updateCounter);
+                            
+                            // Format number based on decimal places
+                            if (target % 1 === 0) {
+                                counter.textContent = Math.floor(current);
+                            } else {
+                                counter.textContent = current.toFixed(2);
+                            }
+                            
+                            setTimeout(updateCounter, 20);
                         } else {
-                            counter.innerText = target % 1 === 0 ? target : target.toFixed(2);
+                            counter.textContent = target % 1 === 0 ? target.toString() : target.toFixed(2);
                         }
                     };
                     
                     updateCounter();
                 });
+                observer.unobserve(entry.target);
             }
         });
     }, { threshold: 0.5 });
@@ -212,7 +225,7 @@ function initCertificateModal() {
     const certContent = {
         'ejptv2': `
             <div class="cert-preview-content">
-                <h4>eJPTv2 - prep course</h4>
+                <h4>eJPTv2 - Preparation Course</h4>
                 <p>INE Security</p>
                 <p>The eJPTv2 preparation course covers essential penetration testing skills including network scanning, vulnerability assessment, web application attacks, and post-exploitation techniques.</p>
                 <div class="cert-details">
@@ -222,6 +235,7 @@ function initCertificateModal() {
                         <li>Web Application Security</li>
                         <li>Vulnerability Assessment</li>
                         <li>Report Writing</li>
+                        <li>Ethical Hacking Methodology</li>
                     </ul>
                 </div>
             </div>
@@ -238,6 +252,7 @@ function initCertificateModal() {
                         <li>Risk Assessment Methodologies</li>
                         <li>Compliance Verification</li>
                         <li>Audit Reporting</li>
+                        <li>Continual Improvement</li>
                     </ul>
                 </div>
             </div>
@@ -254,6 +269,7 @@ function initCertificateModal() {
                         <li>Network Defense</li>
                         <li>Incident Response</li>
                         <li>Security Operations</li>
+                        <li>Risk Management</li>
                     </ul>
                 </div>
             </div>
@@ -270,6 +286,7 @@ function initCertificateModal() {
                         <li>Exploitation Methods</li>
                         <li>Privilege Escalation</li>
                         <li>Persistence Mechanisms</li>
+                        <li>Post-Exploitation</li>
                     </ul>
                 </div>
             </div>
@@ -286,22 +303,7 @@ function initCertificateModal() {
                         <li>Threat Detection</li>
                         <li>Incident Response Procedures</li>
                         <li>Security Monitoring</li>
-                    </ul>
-                </div>
-            </div>
-        `,
-        'ccna': `
-            <div class="cert-preview-content">
-                <h4>CCNA prep</h4>
-                <p>David Bombal</p>
-                <p>Preparation course for Cisco Certified Network Associate (CCNA) certification, covering networking fundamentals, IP connectivity, and network security basics.</p>
-                <div class="cert-details">
-                    <p><strong>Key Concepts:</strong></p>
-                    <ul>
-                        <li>Network Fundamentals</li>
-                        <li>IP Addressing</li>
-                        <li>Routing and Switching</li>
-                        <li>Network Security Basics</li>
+                        <li>Alert Triage</li>
                     </ul>
                 </div>
             </div>
@@ -312,10 +314,12 @@ function initCertificateModal() {
     previewButtons.forEach(button => {
         button.addEventListener('click', function() {
             const certId = this.getAttribute('data-cert');
-            const title = this.closest('.cert-card').querySelector('h3').textContent;
+            const certCard = this.closest('.cert-card');
+            const title = certCard.querySelector('h3').textContent;
             
             document.getElementById('modal-cert-title').textContent = title;
-            document.getElementById('modal-cert-content').innerHTML = certContent[certId] || '<p>Certificate details not available.</p>';
+            document.getElementById('modal-cert-content').innerHTML = 
+                certContent[certId] || '<p>Certificate details not available.</p>';
             
             modal.style.display = 'block';
             document.body.style.overflow = 'hidden';
@@ -323,18 +327,26 @@ function initCertificateModal() {
     });
     
     // Close modal
-    closeBtn.addEventListener('click', function() {
-        modal.style.display = 'none';
-        document.body.style.overflow = 'auto';
-    });
+    closeBtn.addEventListener('click', closeModal);
     
     // Close modal when clicking outside
     window.addEventListener('click', function(event) {
         if (event.target === modal) {
-            modal.style.display = 'none';
-            document.body.style.overflow = 'auto';
+            closeModal();
         }
     });
+    
+    // Close with Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && modal.style.display === 'block') {
+            closeModal();
+        }
+    });
+    
+    function closeModal() {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
 }
 
 // Contact form handling
@@ -344,21 +356,6 @@ function initContactForm() {
     if (contactForm) {
         contactForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            hideFormErrors();
-            
-            // Get form values
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const subject = document.getElementById('subject').value;
-            const message = document.getElementById('message').value;
-            
-            // Validate form
-            const errors = validateForm(name, email, subject, message);
-            
-            if (errors.length > 0) {
-                showFormErrors(errors);
-                return;
-            }
             
             // Show loading state
             const submitBtn = contactForm.querySelector('button[type="submit"]');
@@ -366,13 +363,19 @@ function initContactForm() {
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
             submitBtn.disabled = true;
             
-            // Simulate form submission (replace with actual form handling)
-            setTimeout(() => {
-                
-                contactForm.reset();
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-            }, 2000);
+            // Use EmailJS for form submission
+            emailjs.sendForm("service_20f3ekj", "template_t6kx8ju", this)
+                .then(function() {
+                    showNotification("✅ Message sent successfully! I'll get back to you soon.", "success");
+                    contactForm.reset();
+                }, function(error) {
+                    showNotification("❌ Failed to send message. Please try again.", "error");
+                    console.error('EmailJS Error:', error);
+                })
+                .finally(() => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                });
         });
     }
 }
@@ -383,42 +386,34 @@ function initMobileMenu() {
     const navMenu = document.getElementById('nav-menu');
     const navLinks = document.querySelectorAll('.nav-link');
     
-    if (hamburger && navMenu) {
-        hamburger.addEventListener('click', function() {
-            navMenu.classList.toggle('active');
-            hamburger.classList.toggle('active');
-            
-            // Prevent body scroll when menu is open
-            if (navMenu.classList.contains('active')) {
-                document.body.style.overflow = 'hidden';
-            } else {
-                document.body.style.overflow = 'auto';
-            }
-        });
+    if (!hamburger || !navMenu) return;
+    
+    hamburger.addEventListener('click', function() {
+        navMenu.classList.toggle('active');
+        hamburger.classList.toggle('active');
         
-        // Close menu when clicking on nav links
-        navLinks.forEach(link => {
-            link.addEventListener('click', function() {
-                navMenu.classList.remove('active');
-                hamburger.classList.remove('active');
-                document.body.style.overflow = 'auto';
-            });
+        // Toggle body scroll
+        if (navMenu.classList.contains('active')) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'auto';
+        }
+    });
+    
+    // Close menu when clicking on nav links
+    navLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            navMenu.classList.remove('active');
+            hamburger.classList.remove('active');
+            document.body.style.overflow = 'auto';
         });
-        
-        // Close menu when clicking outside
-        document.addEventListener('click', function(event) {
-            if (!hamburger.contains(event.target) && !navMenu.contains(event.target)) {
-                navMenu.classList.remove('active');
-                hamburger.classList.remove('active');
-                document.body.style.overflow = 'auto';
-            }
-        });
-    }
+    });
 }
 
 // Skill bars animation
 function initSkillBars() {
     const skillBars = document.querySelectorAll('.skill-fill');
+    if (skillBars.length === 0) return;
     
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -437,13 +432,14 @@ function initSkillBars() {
 // Lazy loading for images
 function initLazyLoading() {
     const images = document.querySelectorAll('img[data-src]');
+    if (images.length === 0) return;
     
-    const imageObserver = new IntersectionObserver((entries, observer) => {
+    const imageObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 const img = entry.target;
                 img.src = img.dataset.src;
-                img.classList.remove('lazy');
+                img.classList.add('loaded');
                 imageObserver.unobserve(img);
             }
         });
@@ -469,64 +465,123 @@ function initPerformanceOptimizations() {
         }
     }
     
-    // Replace the scroll event listener in initNavigation
-    window.removeEventListener('scroll', updateActiveNavLink);
     window.addEventListener('scroll', requestTick);
+}
+
+// Form validation
+function initFormValidation() {
+    const form = document.getElementById('contact-form');
+    if (!form) return;
     
-    // Preload critical resources
-    const criticalLinks = [
-        'https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600;700&display=swap',
-        'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
-    ];
+    const inputs = form.querySelectorAll('input, textarea');
     
-    criticalLinks.forEach(href => {
-        const link = document.createElement('link');
-        link.rel = 'preload';
-        link.as = 'style';
-        link.href = href;
-        document.head.appendChild(link);
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            validateField(this);
+        });
+        
+        input.addEventListener('input', function() {
+            clearFieldError(this);
+        });
     });
 }
 
-// Enhanced form validation
-function validateEmail(email) {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-}
-
-function validateForm(name, email, subject, message) {
-    const errors = [];
+function validateField(field) {
+    const value = field.value.trim();
+    let isValid = true;
+    let errorMessage = '';
     
-    if (!name.trim()) errors.push('Name is required');
-    if (!email.trim()) errors.push('Email is required');
-    else if (!validateEmail(email)) errors.push('Please enter a valid email address');
-    if (!subject.trim()) errors.push('Subject is required');
-    if (!message.trim()) errors.push('Message is required');
-    else if (message.trim().length < 10) errors.push('Message must be at least 10 characters long');
-    
-    return errors;
-}
-
-// Enhanced error handling
-function showFormErrors(errors) {
-    const errorContainer = document.getElementById('form-errors') || createErrorContainer();
-    errorContainer.innerHTML = errors.map(error => `<p class="error-message">${error}</p>`).join('');
-    errorContainer.style.display = 'block';
-}
-
-function createErrorContainer() {
-    const container = document.createElement('div');
-    container.id = 'form-errors';
-    container.className = 'form-errors';
-    const form = document.getElementById('contact-form');
-    form.insertBefore(container, form.firstChild);
-    return container;
-}
-
-function hideFormErrors() {
-    const errorContainer = document.getElementById('form-errors');
-    if (errorContainer) {
-        errorContainer.style.display = 'none';
+    switch (field.type) {
+        case 'text':
+            if (field.id === 'name') {
+                if (value.length < 2) {
+                    errorMessage = 'Name must be at least 2 characters';
+                    isValid = false;
+                }
+            }
+            break;
+            
+        case 'email':
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(value)) {
+                errorMessage = 'Please enter a valid email address';
+                isValid = false;
+            }
+            break;
+            
+        case 'textarea':
+            if (value.length < 10) {
+                errorMessage = 'Message must be at least 10 characters';
+                isValid = false;
+            }
+            break;
     }
+    
+    if (!isValid) {
+        showFieldError(field, errorMessage);
+    } else {
+        clearFieldError(field);
+    }
+    
+    return isValid;
 }
 
+function showFieldError(field, message) {
+    clearFieldError(field);
+    
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'field-error';
+    errorDiv.textContent = message;
+    errorDiv.style.color = 'var(--danger-color)';
+    errorDiv.style.fontSize = '0.85rem';
+    errorDiv.style.marginTop = '5px';
+    
+    field.parentNode.appendChild(errorDiv);
+    field.style.borderColor = 'var(--danger-color)';
+}
+
+function clearFieldError(field) {
+    const existingError = field.parentNode.querySelector('.field-error');
+    if (existingError) {
+        existingError.remove();
+    }
+    field.style.borderColor = '';
+}
+
+// Notification system
+function showNotification(message, type = "success") {
+    const notification = document.getElementById("notification");
+    if (!notification) return;
+    
+    notification.textContent = message;
+    notification.className = "notification " + type;
+    notification.style.display = "block";
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        notification.style.display = "none";
+    }, 5000);
+}
+
+// Smooth scroll to top on page refresh
+window.addEventListener('beforeunload', function() {
+    window.scrollTo(0, 0);
+});
+
+// Initialize on load
+window.addEventListener('load', function() {
+    // Add loaded class for fade-in effects
+    document.body.classList.add('loaded');
+    
+    // Preload images
+    const images = document.querySelectorAll('img');
+    images.forEach(img => {
+        if (img.complete) {
+            img.classList.add('loaded');
+        } else {
+            img.addEventListener('load', function() {
+                this.classList.add('loaded');
+            });
+        }
+    });
+});
