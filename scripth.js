@@ -69,6 +69,22 @@ const gameState = {
     gameOver: false
 };
 
+// HUD Animations
+function updateHUD() {
+    const now = new Date();
+    document.getElementById('sys-clock').textContent = now.toLocaleTimeString('en-US', { hour12: false });
+
+    // Random Hex
+    const hexChars = "0123456789ABCDEF";
+    let hexStr = "";
+    for (let i = 0; i < 20; i++) {
+        hexStr += "0x" + hexChars[Math.floor(Math.random() * 16)] + hexChars[Math.floor(Math.random() * 16)] + "<br>";
+    }
+    document.getElementById('hex-left').innerHTML = hexStr;
+}
+setInterval(updateHUD, 1000);
+updateHUD();
+
 const hints = [
     "Service accounts like 'system' rarely type commands manually. Who controlled it?",
     "Check system_warning.png carefully. Binary files sometimes contain readable strings.",
@@ -292,7 +308,244 @@ commandInput.addEventListener('keydown', (e) => {
 });
 
 // Start Button Logic
-document.getElementById('start-btn').addEventListener('click', startGame);
+document.getElementById('intro-btn').addEventListener('click', playIntroSequence);
+
+const ASCIILogo = `
+============+=++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+============++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+===========+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=========+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=======+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+======++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+==+=++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=+++++++++++++++++++++++++++++++++++++++++++++++*##**+++++++++++++++++++++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++++++++++++*%%%%%%%%*+++++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++++#%%@@@%%%%%#*+++++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++*#%@@@@@@@%%#*+++*#%@%#*++++++++++++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++*#%@@@@@@@%%#*++++*%@@@@@@@#*++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++*#@@@@@@@@@%#+++****+++#%@@%%*+++***++++++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++*%@@@@@@@@@%*++++*%@@@@%*+++++++++#@@@@@%*+++++++++++++++++++++++++++++
+++++++++++++++++++++++++++*%@@@@@@@@@%*++++*%@@@@@@@@@%#++++*#@@@@@@@@@%*++++++++++++++++++++++++++
++++++++++++++++++++++++#%@@@@@@@@%#**++*#%#*+++*#%@@@@@@@@%#*+++*#%@@@@@@@%%*+++++++++++++++++++++++
++++++++++++++++++++*#%@@@@@@@@%#*+++*#%@@@@@%#*+++*#%@@@@@@@@%#*+++*#%@@@@@@@%#**+++++++++++++++++++
+++++++++++++++++++%@@@@@@@@%#*++**#%@@@@@@@%%*+++**+++*%%@@@@@@@%#*+++*#%%@@@%%%%%++++++++++++++++++
+++++++++++++++++++@@@@@@%#+++**%@@@@@@@@%%*+++**%@@%**+++*%@@@@@@@%%#*++++*%%%%%%%++++++++++++++++++
+++++++++++++++++++@@@@@#+++*%@@@@@@@@@#*++++#%@@@@@@@%%*++++*#@@@@%%%%%#++++*%%%%%++++++++++++++++++
+++++++++++++++++++@@@@@#++#@@@@@@@@#*+++*#%@@@@@@@@%#*+++*#*+++*#%@%#**+++++*%%%%%++++++++++++++++++
+++++++++++++++++++%@@@@#++%@@@@@#*+++*#%@@@@@@@@%#*+++*#%@@@%#*+++*++++*##++*%%%%%++++++++++++++++++
++++++++++++++++++++*#%@#++%@@@@%++++*%@@@@@@@%#*+++++*%@@@@@@@@%#*++*%@@@#++*%%#*+++++++++++++++++++
+++++++++++++++++++**++**++%@@@@%+++*+++*%@%#++++++++++++*%@@@@@%%*++%@@@@#++**+++*++++++++++++++++++
+++++++++++++++++++@@%*++++#@@@@%++*@@#+++++++++++++++++++++*@@@%%*++%@@@%*+++++#@%++++++++++++++++++
+++++++++++++++++++@@@@%*++#@@@@%++*@@@@%*++++++++++++++++++*@@@%%*++%%**++++*@@@@%++++++++++++++++++
+++++++++++++++++++@@@@@#++#@@@@%++*@@@@@*++++++++++++++++++*@@@%%*++++++**++*@@@@%++++++++++++++++++
+++++++++++++++++++*#%@@#++#@@@@%+++*#%@%*++++++++++++++++++*@@%#*++++##%%#++*@@%#*++++++++++++++++++
++++++++++++++++++++++*#*++#@@@@%++++++*#*++++++++++++++++++*#*++++++%@@%%#++*#*+++++++++++++++++++++
+++++++++++++++++++@%*+++++#@@@@%++*@#*++++++++++++++++++++++++*#%*++%@@%%#+++++*#%++++++++++++++++++
+++++++++++++++++++@@@@%*++++*%@%++*@@@@#++++++++++++++++++++#@@@@*++%@@%%#++*%@@@%++++++++++++++++++
+++++++++++++++++++@@@@@#++*+++**++*@@@@@*++*++++++++++++*++*@@@@@*++%@@%%#++*@@@@%++++++++++++++++++
+++++++++++++++++++@@@@@#++#@%#*++++#%@@%*++%@%#*+++++*#%%++*@@@%#+++%@@%%#++*@@@@%++++++++++++++==
+++++++++++++++++++@@@@@#++#@@@@#+++++*#%*++%@@@@%#*#%@@%%++*%#*+++*#%@@%%#++*@@@@%++++++++++++++====
+++++++++++++++++++@@@@@#++#@@@@%++*#*++++++%@@@@@@@@@@%%%++++++*#%@@@@@%%#++*@@@@%++++++++++++======
+++++++++++++++++++@@@@@#+++*%@@%++*@@@#*++++#@@@@@@@@@%#+++++#@@@@@@@@@%*+++*@@@@%++++++++++========
+++++++++++++++++++@@@@@@%#++++**++*@@@@@@%*+++**%@@%**+++++*@@@@@@@@#*++++++*@@@@%+++++++++=========
+++++++++++++++++++%@@@@@@@@%#*++++*@@@@@@@@%#*+++**+++*#%++*@@@@@#*++++*%#++*@@@@%++++++++==========
++++++++++++++++++++*#%@@@@@@@%%*++++*#%@@@@@@@%#*++*#@@@%++*@%#*++++*%@@@#++*@%#+++++++=============
++++++++++++++++++++++++#%%@@@%%%+++*+++*#%@@@@%%#++#@@@@%+++*+++*+++%@@@@#+++++++++++===============
+++++++++++++++++++++++++++*%%%%%++*@@#*++++*%%%%#++#@@@%#++++*#%%*++%@@@%*+++++++++=================
++++++++++++++++++++++++++++++*#%++*@@@@%*+++++*%#++#%*++++*#%%%%%*++%%*+++++++++++==================
+++++++++++++++++++++++++++++++++++*@@@@%*++##++++++++++*%%@@@%%%%*++++++++++++++====================
++++++++++++++++++++++++++++++++++++*#%@@*++%@@%#*+++*%%@@@@@@%%#*+++++++++++++======================
+++++++++++++++++++++++++++++++++++++++*#*++%@@@@@%%@@@@@@@%%#*++++++++++++++========================
++++++++++++++++++++++++++++++++++++++++++++%@@@@@@@@@@@@%#++++++++++++++++==========================
++++++++++++++++++++++++++++++++++++++++++++++*%@@@@@@%*+++++++++++++++++============================
+++++++++++++++++++++++++++++++++++++++++++++++++*%%*+++++++++++++++++++=============================
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++==============================
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++================================
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++=================================--
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++================================----
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++=================================-----
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++=================================-------
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++=================================---------`;
+
+async function playIntroSequence() {
+    const introScreen = document.getElementById('intro-screen');
+    const startScreen = document.getElementById('start-screen');
+
+    introScreen.classList.add('hidden');
+    startScreen.classList.remove('hidden');
+    startScreen.innerHTML = ''; // Ensure empty
+
+    // Helper for adding lines
+    const appendLine = (text, className = '', isPre = false) => {
+        const el = document.createElement(isPre ? 'pre' : 'div');
+        el.className = className;
+        if (isPre) {
+            el.style.fontFamily = 'monospace';
+            el.style.whiteSpace = 'pre';
+            el.style.fontSize = '10px';
+            el.style.lineHeight = '10px';
+            el.style.color = '#0f0';
+            el.style.display = 'inline-block';
+            el.style.textAlign = 'center';
+            el.style.width = '100%';
+        }
+        el.textContent = text;
+        startScreen.appendChild(el);
+        startScreen.scrollTop = startScreen.scrollHeight;
+        return el;
+    };
+
+    // 0. Tool Execution Simulation
+    const bootLines = [
+        "root@shadow-sys:~# ./shadow_protocol.sh --init",
+        "[+] Initializing Shadow Environment v2.4.1...",
+        "[+] Allocating memory blocks... OK",
+        "[+] Bypassing firewall rules (Port 8080)... OK",
+        "[+] establishing encrypted connection to 192.168.X.X...",
+        "[+] Connection established.",
+        "[+] Loading modules: [FORENSICS, DECRYPTION, EXPLOIT]... 100%",
+        "[!] WARNING: Unauthorized access detected!",
+        "[+] Launching interface..."
+    ];
+
+    for (const line of bootLines) {
+        const p = document.createElement('div');
+        p.style.fontFamily = 'monospace';
+        p.style.marginBottom = '5px';
+        p.style.color = line.startsWith("[!]") ? '#ff3333' : '#33ff33';
+        p.style.textShadow = '0 0 2px ' + p.style.color;
+
+        if (line.startsWith("root@")) {
+            p.style.color = "#ffaa00";
+            p.textContent = line;
+        } else {
+            p.textContent = line;
+        }
+
+        startScreen.appendChild(p);
+        startScreen.scrollTop = startScreen.scrollHeight;
+
+        // Random typing delay for "realism"
+        await new Promise(r => setTimeout(r, Math.random() * 300 + 100));
+    }
+
+    await new Promise(r => setTimeout(r, 800));
+    startScreen.innerHTML = ''; // Clear boot sequence for clean logo display (optional, or keep it)
+    // Actually, keeping it makes it look like a history buffer. Let's keep it but maybe add a separator or just clear if the user wants a "new screen" feel. 
+    // The user said "make everything like starting a tool", usually tools clear screen or just scroll. 
+    // I'll clear it to frame the ASCII Logo better, or maybe just add spacing.
+    // Let's clear it for a "clean tool UI" launch effect.
+    startScreen.innerHTML = '';
+
+    // 1. Type ASCII Art (Fast)
+    const asciiLines = ASCIILogo.split('\n');
+    const artContainer = document.createElement('div');
+    artContainer.style.textAlign = 'center';
+    startScreen.appendChild(artContainer);
+
+    for (let line of asciiLines) {
+        const pre = document.createElement('pre');
+        pre.style.fontFamily = 'monospace';
+        pre.style.fontSize = '8px'; // Smaller to fit
+        pre.style.lineHeight = '8px';
+        pre.style.margin = '0';
+        pre.style.color = '#0f0';
+        pre.textContent = line;
+        artContainer.appendChild(pre);
+        startScreen.scrollTop = startScreen.scrollHeight;
+        await new Promise(r => setTimeout(r, 10)); // Very fast typing
+    }
+
+    await new Promise(r => setTimeout(r, 500));
+
+    await new Promise(r => setTimeout(r, 500));
+
+    // 2. Type Title (Text)
+    // Skipped ASCII title to prevent ReferenceError
+
+
+    // Type Strings
+    const typeString = async (text, style = '', tag = 'p') => {
+        const p = document.createElement(tag);
+        p.style.cssText = style;
+        p.style.textAlign = 'center';
+        startScreen.appendChild(p);
+
+        let i = 0;
+        const speed = 20;
+
+        while (i < text.length) {
+            p.textContent += text.charAt(i);
+            i++;
+            startScreen.scrollTop = startScreen.scrollHeight;
+            await new Promise(r => setTimeout(r, speed));
+        }
+        await new Promise(r => setTimeout(r, 300));
+    };
+
+    await typeString("SHADOW IN THE SYSTEM", "font-size: 2.5rem; margin-bottom: 10px; text-shadow: 0 0 10px #0f0; color: #fff;", "h1");
+    await typeString("Escape Room", "color: #ffaa00; font-size: 1.5rem; margin-bottom: 20px;", "h2");
+
+    const flowContainer = document.createElement('div');
+    flowContainer.style.maxWidth = '900px';
+    flowContainer.style.margin = '0 auto';
+    flowContainer.style.border = '2px solid #33ff33';
+    flowContainer.style.padding = '40px';
+    flowContainer.style.background = 'rgba(0, 20, 0, 0.8)';
+    flowContainer.style.textAlign = 'left';
+    flowContainer.style.fontSize = '1.5rem';
+    flowContainer.style.lineHeight = '1.6';
+    flowContainer.style.boxShadow = '0 0 20px rgba(51, 255, 51, 0.2)';
+    startScreen.appendChild(flowContainer);
+
+    const typeToContainer = async (text, isHtml = false) => {
+        const p = document.createElement('div');
+        p.style.marginBottom = '10px';
+        p.style.fontFamily = 'monospace';
+        flowContainer.appendChild(p);
+
+        if (isHtml) {
+            p.innerHTML = text;
+        } else {
+            let i = 0;
+            while (i < text.length) {
+                p.textContent += text.charAt(i);
+                i++;
+                startScreen.scrollTop = startScreen.scrollHeight;
+                await new Promise(r => setTimeout(r, 15));
+            }
+        }
+        await new Promise(r => setTimeout(r, 200));
+    };
+
+    await typeToContainer("MISSION BRIEFING:");
+    await typeToContainer("We have detected unauthorized root access on server 0x92A. System integrity is compromised.");
+    await typeToContainer("YOUR OBJECTIVE:");
+    await typeToContainer("- Analyze system logs and artifacts.");
+    await typeToContainer("- Identify the REAL user behind the attack.");
+    await typeToContainer("- Submit the flag: flag{username}");
+    await typeToContainer("WARNING: You have 30 minutes before the system is permanently corrupted.");
+
+    // Button
+    const btnBox = document.createElement('div');
+    btnBox.style.marginTop = '20px';
+    btnBox.style.textAlign = 'center';
+    flowContainer.appendChild(btnBox);
+
+    const btn = document.createElement('button');
+    btn.textContent = 'INITIALIZE SESSION';
+    btn.id = 'start-btn';
+    btn.style.fontSize = '1.5rem';
+    btn.style.padding = '15px 40px';
+    btn.style.border = '2px solid #0f0';
+    btn.style.background = '#002200';
+    btn.style.color = '#0f0';
+    btn.style.cursor = 'pointer';
+    btnBox.appendChild(btn);
+
+    btn.addEventListener('click', startGame);
+    startScreen.scrollTop = startScreen.scrollHeight;
+}
 
 function startGame() {
     document.getElementById('start-screen').classList.add('hidden');
