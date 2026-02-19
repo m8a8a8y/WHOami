@@ -69,12 +69,10 @@ const gameState = {
     gameOver: false
 };
 
-// HUD Animations
 function updateHUD() {
     const now = new Date();
     document.getElementById('sys-clock').textContent = now.toLocaleTimeString('en-US', { hour12: false });
 
-    // Random Hex
     const hexChars = "0123456789ABCDEF";
     let hexStr = "";
     for (let i = 0; i < 20; i++) {
@@ -97,13 +95,12 @@ const timerElement = document.getElementById('timer');
 const scoreElement = document.getElementById('score');
 const scanlines = document.querySelector('.scanlines');
 
-// Sound effects (simulated)
 const beep = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU'); // Placeholder
 
 function printLine(text, className = '') {
     const div = document.createElement('div');
     div.className = 'line ' + className;
-    div.textContent = text; // Secure text content
+    div.textContent = text;
     if (text.startsWith("[IMAGE]")) {
         const svgData = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgNDAwIDIwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzAwMCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjZjAwIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjI0Ij5TWVNURU0gQ09NUFhPTUlTRUQ8L3RleHQ+PC9zdmc+";
         div.innerHTML = `<img src="${svgData}" style="max-width: 300px; border: 1px solid #f00; opacity: 0.8;">
@@ -125,8 +122,6 @@ function updateTimer() {
         endGame('Time Expired', 'System corruption complete. Attacker erased traces.', 'failure');
         return;
     }
-
-    // Score reduction every 5 minutes (300000 ms)
     const minutesElapsed = Math.floor(elapsed / 60000);
     // Simple logic: Start score 1000. 
     // We need to only deduct once per 5 minute block. 
@@ -175,7 +170,7 @@ function endGame(title, message, status) {
     mMsg.textContent = message;
 
     modal.classList.remove('hidden');
-    mContent.className = status; // success or failure class for border color
+    mContent.className = status;
 
     if (status === 'failure') {
         document.body.classList.add('glitch');
@@ -250,7 +245,6 @@ function processCommand(cmd) {
                 return;
             }
 
-            // Bruteforce Check
             if (now - gameState.lastSubmitTime < 12000) { // 12 seconds (~5 per min)
                 gameState.submissionsThisMinute++;
             } else {
@@ -265,12 +259,12 @@ function processCommand(cmd) {
                 return;
             }
 
-            // Answer Check
+
             // Valid solution: flag{webmaster}
             const cleanArg = arg.toLowerCase().trim();
 
             if (cleanArg === 'flag{webmaster}') {
-                // Success
+
                 const timeRemaining = (gameState.timerDuration - (Date.now() - gameState.startTime)) / 60000;
                 if (gameState.score > 700 && timeRemaining > 15) {
                     endGame('Elite Analyst Status', 'Incident neutralized. Promotion recommended.', 'success');
@@ -278,7 +272,7 @@ function processCommand(cmd) {
                     endGame('Investigation Successful', 'Attacker identified. System secured.', 'success');
                 }
             } else {
-                // Failure
+
                 gameState.attempts++;
                 updateScore(-100);
                 printLine("INCORRECT KEY. ACCESS DENIED.", "failure");
@@ -298,7 +292,6 @@ function processCommand(cmd) {
     }
 }
 
-// Command Input Listener
 commandInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
         const cmd = commandInput.value;
@@ -307,7 +300,7 @@ commandInput.addEventListener('keydown', (e) => {
     }
 });
 
-// Start Button Logic
+
 document.getElementById('intro-btn').addEventListener('click', playIntroSequence);
 
 const ASCIILogo = `
@@ -373,9 +366,8 @@ async function playIntroSequence() {
 
     introScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
-    startScreen.innerHTML = ''; // Ensure empty
+    startScreen.innerHTML = '';
 
-    // Helper for adding lines
     const appendLine = (text, className = '', isPre = false) => {
         const el = document.createElement(isPre ? 'pre' : 'div');
         el.className = className;
@@ -395,7 +387,6 @@ async function playIntroSequence() {
         return el;
     };
 
-    // 0. Tool Execution Simulation
     const bootLines = [
         "root@shadow-sys:~# ./shadow_protocol.sh --init",
         "[+] Initializing Shadow Environment v2.4.1...",
@@ -425,7 +416,7 @@ async function playIntroSequence() {
         startScreen.appendChild(p);
         startScreen.scrollTop = startScreen.scrollHeight;
 
-        // Random typing delay for "realism"
+
         await new Promise(r => setTimeout(r, Math.random() * 300 + 100));
     }
 
@@ -437,7 +428,6 @@ async function playIntroSequence() {
     // Let's clear it for a "clean tool UI" launch effect.
     startScreen.innerHTML = '';
 
-    // 1. Type ASCII Art (Fast)
     const asciiLines = ASCIILogo.split('\n');
     const artContainer = document.createElement('div');
     artContainer.style.textAlign = 'center';
@@ -446,25 +436,24 @@ async function playIntroSequence() {
     for (let line of asciiLines) {
         const pre = document.createElement('pre');
         pre.style.fontFamily = 'monospace';
-        pre.style.fontSize = '8px'; // Smaller to fit
+        pre.style.fontSize = '8px';
         pre.style.lineHeight = '8px';
         pre.style.margin = '0';
         pre.style.color = '#0f0';
         pre.textContent = line;
         artContainer.appendChild(pre);
         startScreen.scrollTop = startScreen.scrollHeight;
-        await new Promise(r => setTimeout(r, 10)); // Very fast typing
+        await new Promise(r => setTimeout(r, 10));
     }
 
     await new Promise(r => setTimeout(r, 500));
 
     await new Promise(r => setTimeout(r, 500));
 
-    // 2. Type Title (Text)
-    // Skipped ASCII title to prevent ReferenceError
 
 
-    // Type Strings
+
+
     const typeString = async (text, style = '', tag = 'p') => {
         const p = document.createElement(tag);
         p.style.cssText = style;
@@ -526,7 +515,6 @@ async function playIntroSequence() {
     await typeToContainer("- Submit the flag: flag{username}");
     await typeToContainer("WARNING: You have 30 minutes before the system is permanently corrupted.");
 
-    // Button
     const btnBox = document.createElement('div');
     btnBox.style.marginTop = '20px';
     btnBox.style.textAlign = 'center';
@@ -553,7 +541,7 @@ function startGame() {
 
     gameState.startTime = Date.now();
 
-    // Initial Lines with delay for effect
+
     setTimeout(() => printLine("Initializing forensics environment..."), 100);
     setTimeout(() => printLine("Loading system logs... [OK]"), 600);
     setTimeout(() => printLine("Decrypting file system... [OK]"), 1200);
@@ -568,10 +556,8 @@ function startGame() {
         commandInput.focus();
     }, 2500);
 
-    // Start Loops
     setInterval(updateTimer, 1000);
 
-    // Score decay loop (every 5 mins)
     setInterval(() => {
         if (!gameState.gameOver) {
             updateScore(-50);
