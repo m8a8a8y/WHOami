@@ -601,6 +601,11 @@ a:hover {
     align-items: center;
     gap: 20px;
 }
+.timeline-item.animate-in {
+    opacity: 1;
+    transform: translateX(0);
+}
+
 .timeline-item:nth-child(odd) {
     flex-direction: row;
     padding-right: 30px;
@@ -610,8 +615,10 @@ a:hover {
     left: 50%;
     padding-left: 30px;
 }
-.timeline-item:nth-child(even).animate-in {
-    transform: translateX(0);
+.timeline-item:nth-child(even) {
+    flex-direction: row-reverse;
+    left: 50%;
+    padding-left: 30px;
 }
 .timeline-logo {
     width: 90px;
