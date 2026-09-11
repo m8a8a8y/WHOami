@@ -175,17 +175,26 @@ function initTypewriter() {
 }
 
 function initScrollAnimations() {
-    const observer = new IntersectionObserver((entries) => {
+    const observer = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('animate-in');
-            }
+            if (!entry.isIntersecting) return;
+
+            entry.target.classList.add('animate-in');
+
+            // Animate only once.
+            // This prevents the Experience items from
+            // disappearing/replaying when scrolling back.
+            observer.unobserve(entry.target);
         });
-    }, { threshold: 0.1 });
-    document.querySelectorAll('.section, .project-card, .timeline-item, .cert-card')
+    }, {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    });
+
+    document
+        .querySelectorAll('.section, .project-card, .timeline-item, .cert-card')
         .forEach(el => observer.observe(el));
 }
-
 function initCounters() {
     const counters = document.querySelectorAll('.stat-number');
     if (!counters.length) return;
