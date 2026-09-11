@@ -594,31 +594,46 @@ a:hover {
     position: relative;
     width: 50%;
     margin-bottom: 60px;
+
+    /* Start hidden */
     opacity: 0;
-    transform: translateX(-20px);
-    transition: opacity 0.8s ease, transform 0.8s ease;
+
+    /* Smooth horizontal entrance */
+    transform: translateX(-35px);
+
+    /* Only transition the properties we control */
+    transition:
+        opacity 0.7s ease,
+        transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+
     display: flex;
     align-items: center;
     gap: 20px;
-}
-.timeline-item.animate-in {
-    opacity: 1;
-    transform: translateX(0);
+
+    /* Prevent the global .animate-in animation
+       from overriding this timeline animation */
+    animation: none;
 }
 
+/* Left-side entries */
 .timeline-item:nth-child(odd) {
     flex-direction: row;
     padding-right: 30px;
+    transform: translateX(-35px);
 }
+
+/* Right-side entries */
 .timeline-item:nth-child(even) {
     flex-direction: row-reverse;
     left: 50%;
     padding-left: 30px;
+    transform: translateX(35px);
 }
-.timeline-item:nth-child(even) {
-    flex-direction: row-reverse;
-    left: 50%;
-    padding-left: 30px;
+
+/* Visible state */
+.timeline-item.animate-in {
+    opacity: 1;
+    transform: translateX(0);
 }
 .timeline-logo {
     width: 90px;
