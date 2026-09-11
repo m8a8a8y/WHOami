@@ -632,8 +632,9 @@ a:hover {
 
 /* Visible state */
 .timeline-item.animate-in {
-    opacity: 1;
-    transform: translateX(0);
+    opacity: 1 !important;
+    transform: translateX(0) !important;
+    animation: none !important;
 }
 .timeline-logo {
     width: 90px;

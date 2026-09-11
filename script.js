@@ -78,13 +78,13 @@ function updateActiveNavLink() {
 function initParticles() {
     const container = document.getElementById('particles');
     if (!container) return;
-    
+
     // Clear existing particles
     container.innerHTML = '';
-    
+
     const particleCount = Math.min(Math.floor((window.innerWidth * window.innerHeight) / 10000), 120);
     const finalCount = Math.max(Math.min(particleCount, 120), 40);
-    
+
     for (let i = 0; i < finalCount; i++) {
         createParticle(container);
     }
@@ -93,11 +93,11 @@ function initParticles() {
 function createParticle(container) {
     const particle = document.createElement('div');
     particle.className = 'particle';
-    
+
     // Random size - small, medium, or large
     const sizeType = Math.random();
     let size, className;
-    
+
     if (sizeType < 0.5) {
         size = Math.random() * 3 + 2; // 2-5px
         className = 'small';
@@ -108,30 +108,30 @@ function createParticle(container) {
         size = Math.random() * 6 + 9; // 9-15px
         className = 'large';
     }
-    
+
     particle.classList.add(className);
     particle.style.width = size + 'px';
     particle.style.height = size + 'px';
-    
+
     // Random position across the entire viewport
     particle.style.left = Math.random() * 100 + '%';
     particle.style.top = Math.random() * 100 + '%';
-    
+
     // Random animation delay and duration
     const duration = Math.random() * 6 + 4; // 4-10 seconds
     const delay = Math.random() * 5; // 0-5 seconds delay
     particle.style.animationDuration = duration + 's';
     particle.style.animationDelay = delay + 's';
-    
+
     // Random opacity
     const opacity = Math.random() * 0.3 + 0.1; // 0.1-0.4
     particle.style.opacity = opacity;
-    
+
     // Some particles get glow effect
     if (Math.random() < 0.2) {
         particle.classList.add('glow');
     }
-    
+
     container.appendChild(particle);
 }
 
@@ -145,7 +145,7 @@ window.addEventListener('resize', function() {
             const currentCount = container.children.length;
             const targetCount = Math.min(Math.floor((window.innerWidth * window.innerHeight) / 10000), 120);
             const newCount = Math.max(Math.min(targetCount, 120), 40);
-            
+
             if (Math.abs(currentCount - newCount) > 10) {
                 container.innerHTML = '';
                 for (let i = 0; i < newCount; i++) {
@@ -175,30 +175,17 @@ function initTypewriter() {
 }
 
 function initScrollAnimations() {
-    // Sections can grow taller than the viewport (e.g. Experience with many
-    // timeline entries), so a 10% threshold may never be satisfiable for them.
-    // Use a near-zero threshold for sections, and keep 0.1 for small cards.
-    const sectionObserver = new IntersectionObserver((entries) => {
+    const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('animate-in');
-                sectionObserver.unobserve(entry.target);
+                observer.unobserve(entry.target);
             }
         });
-    }, { threshold: 0, rootMargin: '0px 0px -10% 0px' });
+    }, { threshold: 0, rootMargin: '0px 0px -50px 0px' });
 
-    const cardObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('animate-in');
-                cardObserver.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.1 });
-
-    document.querySelectorAll('.section').forEach(el => sectionObserver.observe(el));
-    document.querySelectorAll('.project-card, .timeline-item, .cert-card')
-        .forEach(el => cardObserver.observe(el));
+    document.querySelectorAll('.section, .project-card, .timeline-item, .cert-card')
+        .forEach(el => observer.observe(el));
 }
 
 function initCounters() {
